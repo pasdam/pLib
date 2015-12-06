@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  * @author Paco
  * @version 1.0
  */
-public class Url {
+public class UrlUtils {
 	
 	private static final Pattern BASE_PATTERN = Pattern.compile("https?://(\\w*\\.)?\\w+\\.\\w+/?");
 	
