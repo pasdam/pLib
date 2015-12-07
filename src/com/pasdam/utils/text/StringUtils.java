@@ -46,4 +46,36 @@ public class StringUtils {
 		}
 		return null;
 	}
+	
+	/**
+	 * Extract common prefix from two strings
+	 * 
+	 * @param first
+	 *            first string
+	 * @param second
+	 *            second string
+	 * @return the common prefix of null if at least one of the input string is
+	 *         null
+	 */
+	public static String commonPrefix(String first, String second) {
+		if (first != null && second != null) {
+			if (first.length() > second.length()) {
+				// swap values, in order to make sure that the 
+				// longest string is the second one
+				String swapString = first;
+				first = second;
+				second = swapString;
+			}
+			for (int i = 0; i < first.length(); i++) {
+				if (first.charAt(i) != second.charAt(i)) {
+					return first.substring(0, i);
+				}
+			}
+			// the first string is the common prefix, because the for didn't
+			// return before the end of the string
+			return first;
+		} else {
+			return null;
+		}
+	}
 }
