@@ -1,4 +1,4 @@
-package com.pasdam.utils.web.http;
+package com.pasdam.utils.net.web.http;
 
 /**
  * @author Paco

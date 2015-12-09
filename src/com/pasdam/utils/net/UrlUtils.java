@@ -1,4 +1,4 @@
-package com.pasdam.utils.web;
+package com.pasdam.utils.net;
 
 import java.net.MalformedURLException;
 import java.net.URL;

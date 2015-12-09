@@ -1,4 +1,4 @@
-package com.pasdam.utils.web.http;
+package com.pasdam.utils.net.web.http;
 
 import java.io.BufferedReader;
 import java.io.IOException;

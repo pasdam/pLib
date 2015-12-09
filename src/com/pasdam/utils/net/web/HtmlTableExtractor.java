@@ -1,4 +1,4 @@
-package com.pasdam.utils.web;
+package com.pasdam.utils.net.web;
 
 import java.util.ArrayList;
 import java.util.List;
