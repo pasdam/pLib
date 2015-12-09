@@ -2,11 +2,15 @@ package com.pasdam.utils.web.http;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 
 /**
  * HTTP client utility class. <br>
@@ -268,6 +272,20 @@ public class HttpClient {
 						headerFields[i].value);
 			}
 		}
-		return new InputStreamReader(connection.getInputStream());
+		
+		String encoding = connection.getContentEncoding();
+		InputStream inputStream = null;
+		
+		// create the appropriate stream wrapper based on
+		// the encoding type
+		if (encoding != null && encoding.equalsIgnoreCase("gzip")) {
+			inputStream = new GZIPInputStream(connection.getInputStream());
+		} else if (encoding != null && encoding.equalsIgnoreCase("deflate")) {
+			inputStream = new InflaterInputStream(connection.getInputStream(), new Inflater(true));
+		} else {
+			inputStream = connection.getInputStream();
+		}
+		
+		return new InputStreamReader(inputStream);
 	}
 }

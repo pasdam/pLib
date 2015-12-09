@@ -6,7 +6,13 @@ package com.pasdam.utils.web.http;
  */
 public enum HeaderFieldName {
 
-	COOKIE("Cookie"), REFER("Referer"), USER_AGENT("User-Agent"), X_REQUESTED_WITH("X-Requested-With");
+	ACCEPT("Accept"),
+	ACCEPT_ENCODING("Accept-Encoding"),
+	CONNECTION("Connection"),
+	COOKIE("Cookie"),
+	REFER("Referer"),
+	USER_AGENT("User-Agent"),
+	X_REQUESTED_WITH("X-Requested-With");
 	
 	public final String headerName;
 	
