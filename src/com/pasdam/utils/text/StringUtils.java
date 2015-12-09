@@ -54,10 +54,29 @@ public class StringUtils {
 	 *            first string
 	 * @param second
 	 *            second string
-	 * @return the common prefix of null if at least one of the input string is
+	 * @return the common prefix or null if at least one of the input strings is
 	 *         null
 	 */
 	public static String commonPrefix(String first, String second) {
+		if (first != null && second != null) {
+			int prefixLength = commonPrefixLength(first, second);
+			return first.substring(0, prefixLength);
+		} else {
+			return null;
+		}
+	}
+	
+	/**
+	 * This method evaluate the common prefix length between two strings
+	 * 
+	 * @param first
+	 *            first string
+	 * @param second
+	 *            second string
+	 * @return the common prefix length, if at least one of the input strings is
+	 *         null it returns 0
+	 */
+	public static int commonPrefixLength(String first, String second) {
 		if (first != null && second != null) {
 			if (first.length() > second.length()) {
 				// swap values, in order to make sure that the 
@@ -68,14 +87,14 @@ public class StringUtils {
 			}
 			for (int i = 0; i < first.length(); i++) {
 				if (first.charAt(i) != second.charAt(i)) {
-					return first.substring(0, i);
+					return i;
 				}
 			}
 			// the first string is the common prefix, because the for didn't
 			// return before the end of the string
-			return first;
+			return first.length();
 		} else {
-			return null;
+			return 0;
 		}
 	}
 }
