@@ -20,7 +20,6 @@ public class CharUtils {
 	 * @return true if character is a latin digit, false otherwise
 	 */
 	public static boolean isLatinDigit(char character) {
-		System.out.println(character);
 		return (character >= '0' && character <= '9');
 	}
 }

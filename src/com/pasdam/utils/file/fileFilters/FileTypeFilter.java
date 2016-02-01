@@ -4,7 +4,8 @@ import java.io.File;
 import java.io.FileFilter;
 
 /**
- * Abstract class that represent a generic files filter (by type)
+ * Class that represent a generic {@link FileFilter} (by type)
+ * 
  * @author Paco
  * @version 1.0
  */
@@ -28,8 +29,11 @@ public class FileTypeFilter implements FileFilter {
 	
 	/**
 	 * Constructor that sets the extensions list and the name of the filter
-	 * @param showHidden - if true the filter shows hidden files
-	 * @param extensions - the array of supported extension
+	 * 
+	 * @param showHidden
+	 *            if true the filter shows hidden files
+	 * @param extensions
+	 *            the array of supported extension
 	 */
 	public FileTypeFilter(String[] extension, boolean showHidden) {
 		this.EXT = extension;
@@ -37,8 +41,11 @@ public class FileTypeFilter implements FileFilter {
 	}
 
 	/**
-	 * This method returns true only if input File represent an archive on the filesystem
-	 * @param file - file to filter
+	 * This method returns true only if input File represent an archive on the
+	 * filesystem
+	 * 
+	 * @param file
+	 *            - file to filter
 	 * @return true if input file has a valid extension
 	 */
 	@Override
@@ -59,8 +66,11 @@ public class FileTypeFilter implements FileFilter {
 	}
 	
 	/**
-	 * This method return true if the input extension is supported by this filter
-	 * @param extension string to check
+	 * This method return true if the input extension is supported by this
+	 * filter
+	 * 
+	 * @param extension
+	 *            string to check
 	 * @return true if extension is supported
 	 */
 	public boolean isSupportedExtension(String extension){

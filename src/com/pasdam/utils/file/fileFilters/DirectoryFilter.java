@@ -20,5 +20,4 @@ public class DirectoryFilter implements FileFilter {
 		}
 		return false;
 	}
-
 }

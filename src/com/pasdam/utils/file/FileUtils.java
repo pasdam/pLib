@@ -17,10 +17,9 @@ import java.io.IOException;
 public final class FileUtils {
 
 	/**
-	 * Private constructor: the user can only use static methods
+	 * Private constructor: avoids class instantiation
 	 */
-	private FileUtils() {
-	}
+	private FileUtils() {}
 
 	/**
 	 * This method reads the input file and returns its content as a string
