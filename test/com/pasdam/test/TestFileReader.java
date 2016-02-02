@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 /**
  * This class allows to read test files, that must have .tst extension and in
@@ -16,42 +17,85 @@ import java.io.IOException;
  */
 public class TestFileReader {
 
-	private static final String EXTENSION = ".tst";
+	/**
+	 * Extension of the test files 
+	 */
+	public static final String EXTENSION = "tst";
+	
+	/**
+	 * Default values separator in the data file
+	 */
+	public static final String DEFAULT_SEPARATOR = "||||||||";
+	
+	/**
+	 * Default split pattern
+	 */
+	private static final Pattern DEFAULT_SPLIT_PATTERN = Pattern.compile(Pattern.quote(DEFAULT_SEPARATOR));
+	
+	/**
+	 * Prefix of the comment line in the test data files
+	 */
 	private static final String COMMENT_PREFIX = "#";
 
 	/**
 	 * {@link BufferedReader} used to read the test data 
 	 */
 	private final BufferedReader reader;
+	
+	/**
+	 * Pattern used to split data file's lines
+	 */
+	private final Pattern splitPattern;
 
+	/**
+	 * Creates a {@link TestFileReader} for the specified file.
+	 * {@link #DEFAULT_SEPARATOR} will be used as separator to split lines if
+	 * needed
+	 * 
+	 * @param file
+	 *            file containing test data; it must have .tst extension
+	 * @param separatorPattern
+	 *            pattern used to split read lines
+	 * @throws IllegalArgumentException
+	 *             if the file extension isn't equals to #EXTEN
+	 * @throws FileNotFoundException
+	 *             if the file does not exist, is a directory rather than a
+	 *             regular file, or for some other reason cannot be opened for
+	 *             reading.
+	 */
+	public TestFileReader(File file, Pattern separatorPattern) throws IllegalArgumentException, FileNotFoundException {
+		assert file != null : "Input file must be not null";
+		assert separatorPattern != null : "Input pattern must be not null";
+		
+		if (file.getName().endsWith("." + EXTENSION)) {
+			this.reader = new BufferedReader(new FileReader(file));
+			this.splitPattern = separatorPattern;
+			
+		} else {
+			throw new IllegalArgumentException("Invalid test file: it must be a .tst file");
+		}
+	}
+	
 	/**
 	 * Creates a {@link TestFileReader} for the specified file.
 	 * 
 	 * @param file
 	 *            file containing test data; it must have .tst extension
 	 * @throws IllegalArgumentException
-	 *             if <i>file</i> is null or the file extension isn't .tst
+	 *             if the file extension isn't equals to #EXTEN
 	 * @throws FileNotFoundException
 	 *             if the file does not exist, is a directory rather than a
 	 *             regular file, or for some other reason cannot be opened for
 	 *             reading.
 	 */
 	public TestFileReader(File file) throws IllegalArgumentException, FileNotFoundException {
-		if (file != null) {
-			if (file.getName().endsWith(EXTENSION)) {
-				this.reader = new BufferedReader(new FileReader(file));
-
-			} else {
-				throw new IllegalArgumentException("Invalid test file: it must be a .tst file");
-			}
-		} else {
-			throw new IllegalArgumentException("Invalid test file: it must be not null");
-		}
+		this(file, DEFAULT_SPLIT_PATTERN);
 	}
 
 	/**
-	 * Reads the next available line of the data file, ignoring eventual comments and empty lines
-	 *  
+	 * Reads the next available line of the data file, ignoring eventual
+	 * comments and empty lines
+	 * 
 	 * @return the next available line of the data file
 	 */
 	public String readLine() {
@@ -67,7 +111,26 @@ public class TestFileReader {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-			return null;
+		}
+		return null;
+	}
+	
+	/**
+	 * Reads next line from file and split it with the specified pattern.
+	 * 
+	 * @return The array of strings computed by splitting the line read around
+	 *         matches of this reader's {@link Pattern}, or an empty array if
+	 *         there are no other lines in the file to read
+	 * @see #TestFileReader(File, Pattern)
+	 */
+	public String[] readAndSplitLine() {
+		String line = readLine();
+		
+		if (line != null) {
+			return this.splitPattern.split(line);
+			
+		} else {
+			return new String[]{};
 		}
 	}
 }
