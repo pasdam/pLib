@@ -1,237 +1,331 @@
 package com.pasdam.utils.file;
 
-import java.io.Serializable;
+import java.io.File;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * @author Paco
- * @version 1.0
+ * Utility class used to retrieve informations about a {@link File}
+ * 
+ * @author paco
+ * @version 0.1
  */
-public class FileInfo implements Serializable {
+public class FileInfo {
 	
-	/** */
-	private static final long serialVersionUID = 985720588842279456L;
+	/**
+	 * Unit multiplier
+	 */
+	private static final int UNIT_MULTIPLIER = 1000;
 	
-	/** List of archive extensions */
-	public static final String[] EXT_ARCHIVE = new String[]{"7z", "gz", "rar", "zip", "zipx", "bz", "bz2", "tgz", "jar", "war", "ace", "bzip", "gzip", "cab", "daa", "dmg", "deb"};
-	/** List of media archive extensions */
-	public static final String[] EXT_MEDIA_ARCHIVE = new String[]{"iso", "img", "mds", "nrg", "mdx", "dmg", "cue", "cif", "c2d", "daa"};
-	/** List of document extensions */
-	public static final String[] EXT_DOCUMENT = new String[]{"doc", "docx", "html", "pdf", "rtf", "txt", "xml", "xps", "odp", "pps", "ppt", "pptx", "xls", "xlsx", "odm", "odt", "tex", "pages", "csv"};
-	/** List of image extensions */
-	public static final String[] EXT_IMAGES = new String[]{"jpg", "jpeg", "bmp", "gif", "png", "ico", "svg", "jp2", "psd", "psp", "tiff", "tif", "exif", "xcf"};
-	/** List of audio extensions */
-	public static final String[] EXT_AUDIO = new String[]{"mp3", "m3u", "au", "wav", "flac", "m4a", "wma", "mp2", "aac", "aiff", "mid"};
-	/** List of video extensions */
-	public static final String[] EXT_VIDEO = new String[]{"avi", "m4v", "mkv", "mov", "mpeg", "mpg", "mp4", "3gp", "flv", "ogg", "rm", "wmv", "nsv"};
+	/**
+	 * Indicates an automatically choose unit
+	 */
+	public static final int UNIT_AUTO     = 0;
 	
-	public static final int UNIT_AUTO = 0;
-	public static final int UNIT_BYTE = 1;
-	public static final int UNIT_KILOBYTE = 1000;
-	public static final int UNIT_MEGABYTE = 1000000;
-	public static final int UNIT_GIGABYTE = 1000000000;
+	/**
+	 * Indicates the byte unit
+	 */
+	public static final int UNIT_BYTE 	  = 1;
 	
-	private int part = 0;
+	/**
+	 * Indicates the kilobyte unit
+	 */
+	public static final int UNIT_KILOBYTE = UNIT_BYTE 	  * UNIT_MULTIPLIER;
+	
+	/**
+	 * Indicates the megabyte unit
+	 */
+	public static final int UNIT_MEGABYTE = UNIT_KILOBYTE * UNIT_MULTIPLIER;
+	
+	/**
+	 * Indicates the gigabyte unit
+	 */
+	public static final int UNIT_GIGABYTE = UNIT_MEGABYTE * UNIT_MULTIPLIER;
+	
+	/**
+	 * Pattern used to parse the filename parts
+	 * TODO: add support for absolute path
+	 */
+	private static final Pattern PATTERN_NAME_PARTS = Pattern.compile("^(.+?)(\\.(\\w*)$|$)");
+	
+	/**
+	 * Index of the name group
+	 */
+	private static final int GROUP_NAME = 1;
+	
+	/**
+	 * Index of the extension group
+	 */
+	private static final int GROUP_EXTENSION = 3;
+	
+	/**
+	 * Pattern used to parse formatted file size
+	 */
+	private static final Pattern PATTERN_FORMATTED_SIZE = Pattern.compile("(\\d+(\\.\\d+)?)\\s*([kKmMgG]?[bB])");
+	
+	/**
+	 * Index of the size group
+	 */
+	private static final int GROUP_SIZE = 1;
+	
+	/**
+	 * Index of the unit group
+	 */
+	private static final int GROUP_UNIT = 3;
+	
+	/**
+	 * Original file
+	 */
+	private File file;
+	
+	/**
+	 * File name
+	 */
+	private String name;
+	
+	/**
+	 * File extension
+	 */
 	private String extension;
-	private String partName;
-	private String fileName;
 	
-	public FileInfo() {
+	/**
+	 * Private constructor: prevents direct instantiation
+	 * 
+	 * @param file
+	 *            original file from which retrieve informations
+	 * 
+	 * @throws NullPointerException
+	 *             if the parameter is null
+	 */
+	private FileInfo(File file) throws IllegalArgumentException {
+		assert file != null : "Input file cannot be null";
+		
+		// parse file parts
+		Matcher matcher = PATTERN_NAME_PARTS.matcher(file.getName());
+		if (matcher.find()) {
+			this.name 		= matcher.group(GROUP_NAME);
+			this.extension 	= matcher.group(GROUP_EXTENSION);
+		}
+			
+		this.file = file;
 	}
 	
-	public void parseFileName(String fileName) {
-		if (fileName == null) {
-			return;
+	/**
+	 * This method parse the full filename and returns the name (without
+	 * extension).<br />
+	 * It currently doesn't support file path, so please specify only the
+	 * filename (without parent directories)
+	 * 
+	 * @param filename
+	 *            filename to parse
+	 * @return the name of the file, or an empty string if no name is found
+	 * 
+	 * @throws NullPointerException
+	 *             if the parameter is null
+	 */
+	public static String parseName(String filename) {
+		assert filename != null : "Input filename cannot be null";
+		
+		Matcher matcher = PATTERN_NAME_PARTS.matcher(filename);
+		if (matcher.find()) {
+			return matcher.group(GROUP_NAME);
 		}
-		String text = fileName.replaceFirst("^.*\\.", "").toLowerCase();
-		if (text.matches("[0-9]+")) {
-			this.part = Integer.parseInt(text);
-			// remove part # from name
-			this.fileName = fileName.substring(0, fileName.length() - text.length() - 1);
-			this.extension = this.fileName.replaceFirst("^.*\\.", "");
-			this.fileName = this.fileName.substring(0, this.fileName.length() - this.extension.length() - 1);
-			this.partName = fileName;
-			return;
-		} else if (text.matches("[rz][0-9]+")) {
-			this.part = Integer.parseInt(text.replaceFirst("[^0-9]+", ""));
-			if (text.startsWith("r")) {
-				extension = "rar";
-			} else if (text.startsWith("z")) {
-				extension = "zip";
-			}
-			// remove extension from name
-			this.fileName = fileName.substring(0, fileName.length() - text.length() - 1); // TODO check -1
-			this.partName = fileName;
-			return;
-		} else {
-			extension = text;
-			this.partName = fileName.substring(0, fileName.length() - text.length() - 1);
-			String[] parts = this.partName.split("[\\W_](([pP][aA][rR][tT])|([cC][dD]))[0-9]+", 2);
-			if (parts.length == 2) {
-				this.fileName = parts[0] + parts[1];
-				try {
-					part = Integer.parseInt("0" + partName
-							.substring(parts[0].length(), partName.length() - parts[1].length())
-							.replaceAll("[^0-9]+", ""));
-				} catch (NumberFormatException e) {
-					part = 0;
-					e.printStackTrace();
-				}
-			} else {
-				this.fileName = partName = fileName;
-			}
-		}
-//		if (!partFound) {
-//			for (int i = 0; i < parts.length; i++) {
-//				fileName += parts[i];
-//			}
-//			StringBuilder builder = new StringBuilder();
-//			builder.append(parts);
-//			this.fileName = builder.toString();
-//			part = Integer.parseInt("0" + name
-//					.replaceFirst("\\Wpart", "\npart")
-//					.replaceFirst("\\Wcd", "\ncd")
-//					.replaceAll("[^0-9a-z]+", "\n")
-//					.replaceAll("(?m)^(?!((part)|(cd))).*$", "")
-//					.replaceAll("[^0-9]+", ""));
-//		}
-//		this.fileName = "filename";
-//		this.partName = "partname";
-//		this.part = 0;
-//		this.extension = "zip";
+		return "";
 	}
 
 	/**
-	 * @return the fileName
+	 * This method parse the full filename and returns the extension.<br />
+	 * It currently doesn't support file path, so please specify only the
+	 * filename (without parent directories)
+	 * 
+	 * @param filename
+	 *            filename to parse
+	 * @return the extension of the file, or an empty string if file has no
+	 *         extension
+	 *         
+	 * @throws NullPointerException
+	 *             if the parameter is null
 	 */
-	public String getFileName() {
-		return fileName;
+	public static String parseExtension(String filename) {
+		assert filename != null : "Input filename cannot be null";
+
+		Matcher matcher = PATTERN_NAME_PARTS.matcher(filename);
+		if (matcher.find()) {
+			String extension = matcher.group(GROUP_EXTENSION);
+			return extension != null ? extension : "";
+		}
+		return "";
 	}
 	
 	/**
-	 * @return the part
+	 * Returns the file to which the info refer
+	 * 
+	 * @return the file to which the info refer
 	 */
-	public int getPart() {
-		return part;
+	public File getFile() {
+		return file;
 	}
 
 	/**
-	 * @return the extension
+	 * Returns the name of the file
+	 * 
+	 * @return the name of the file
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * Returns the extension of the file
+	 * 
+	 * @return the extension of the file
 	 */
 	public String getExtension() {
 		return extension;
 	}
-
+	
 	/**
-	 * @return the name
+	 * This method parse the input file
+	 * 
+	 * @param file
+	 *            original file from which retrieve informations
+	 * @return the {@link FileInfo} related to the input {@link File}
+	 * 
+	 * @throws NullPointerException
+	 *             if the parameter is null
 	 */
-	public String getPartName() {
-		return partName;
-	}
-
-	public static String getName(String filename){
-		return filename.replaceFirst("\\.\\w+?$", "");
-	}
-
-	public static String getExtension(String filename){
-		return filename.replaceFirst("^.*\\.", "");
+	public static FileInfo parseFileInfo(File file) throws IllegalArgumentException {
+		return new FileInfo(file);
 	}
 	
-	public static String getSize(long size, int unit, int resultUnit){
+	/**
+	 * This method format the input size into a human-readable string.<br />
+	 * Use this class static field to specify unit parameters.
+	 * 
+	 * @param size
+	 *            size to format
+	 * @param inputUnit
+	 *            unit of the input size; {@link #UNIT_AUTO} cannot be used
+	 * @param resultUnit
+	 *            unit of the input string; use {@link #UNIT_AUTO} to
+	 *            automatically choose the output size unit
+	 * @return the formatted size
+	 * @throws IllegalArgumentException
+	 *             if inputUnit or resultUnit have an invalid value
+	 */
+	public static String formatSize(long size, int inputUnit, int resultUnit) throws IllegalArgumentException {
 		if (size >= 0) {
-			String suffix = "";
-			switch (unit) {
-				case UNIT_BYTE:
-					suffix = " B";
-					break;
-				case UNIT_KILOBYTE:
-					suffix = " KB";
-					break;
-				case UNIT_MEGABYTE:
-					suffix = " MB";
-					break;
-				case UNIT_GIGABYTE:
-					suffix = " GB";
-					break;
-				default:
-					return null;
-			}
+			String suffix = null;
+			
 			switch (resultUnit) {
 				case UNIT_BYTE:
 					suffix = " B";
 					break;
+				
 				case UNIT_KILOBYTE:
 					suffix = " KB";
 					break;
+				
 				case UNIT_MEGABYTE:
 					suffix = " MB";
 					break;
+				
 				case UNIT_GIGABYTE:
 					suffix = " GB";
 					break;
+				
 				case UNIT_AUTO:
-					break;
-				default:
-					return null;
-			}
-			if (resultUnit != UNIT_AUTO) {
-				StringBuilder textSize = new StringBuilder();
-				textSize.append(new DecimalFormat("#.##").format(((double)size)*unit/resultUnit));
-				textSize.append(suffix);
-				return textSize.toString();
-			} else {
-				double dim;
-				String prevDim = size + suffix;
-				NumberFormat formatter = new DecimalFormat("#.##");
-				for (int i = unit*1000; i <= UNIT_GIGABYTE; i = i*1000) {
-					dim = ((double)size)*unit/i;
-					if (dim < 1) {
-						break;
-					} else {
-						switch (i) {
+				{
+					double dim;
+					double prevDim = ((double) size) * inputUnit / inputUnit;
+					NumberFormat formatter = new DecimalFormat("#.##");
+					
+					for (int i = inputUnit; i <= UNIT_GIGABYTE; i = i * UNIT_MULTIPLIER) {
+						dim = ((double) size) * inputUnit / (i * UNIT_MULTIPLIER);
+						
+						if (dim < 1) {
+							switch (i) {
+							case UNIT_BYTE:
+								return formatter.format(prevDim) + " B";
+
 							case UNIT_KILOBYTE:
-								prevDim = formatter.format(dim) + " KB";
-								break;
+								return formatter.format(prevDim) + " KB";
+
 							case UNIT_MEGABYTE:
-								prevDim = formatter.format(dim) + " MB";
-								break;
+								return formatter.format(prevDim) + " MB";
+
 							case UNIT_GIGABYTE:
-								prevDim = formatter.format(dim) + " GB";
-								break;
+								return formatter.format(prevDim) + " GB";
+
+							default:
+								// error
+								throw new IllegalArgumentException("Invalid inputUnit: " + inputUnit);
+							}
 						}
+						
+						prevDim = dim;
 					}
+					
+					// this code is reached only if inputUnit is invalid 
+					throw new IllegalArgumentException("Invalid inputUnit: " + inputUnit);
 				}
-				return prevDim;
+					
+				default:
+					throw new IllegalArgumentException("Invalid resultUnit: " + resultUnit);
 			}
+			
+			// TODO make pattern customizable
+			return new DecimalFormat("#.##").format(((double) size) * inputUnit / resultUnit) + suffix;
+
+		} else {
+			return null;
 		}
-		return null;
 	}
 	
-	public static long parseSize(String size){
-		size = size.trim().replaceFirst(",", ".");
-		if (size.matches("[0-9]+([.][0-9]+)*\\s*[kKmMgG]?[bB]")) {
-//			Matcher matcher = Pattern.compile(
-//					"[0-9]+([.,][0-9]+)*\\s*[kKmMgG]?[bB]").matcher(size);
-//			if (matcher.find()) {
-//				size = matcher.group();
-				String unit = size.replaceFirst("[0-9]+([.,][0-9]+)*\\s*", "")
-						.toLowerCase();
-				if (unit.equals("b")) {
-					return (long) Double.parseDouble(size.replaceFirst(
-							"\\s*[kKmMgG]?[bB]", ""));
-				} else if (unit.equals("kb")) {
-					return (long) (Double.parseDouble(size.replaceFirst(
-							"\\s*[kKmMgG]?[bB]", "")) * UNIT_KILOBYTE);
-				} else if (unit.equals("mb")) {
-					return (long) (Double.parseDouble(size.replaceFirst(
-							"\\s*[kKmMgG]?[bB]", "")) * UNIT_MEGABYTE);
-				} else if (unit.equals("gb")) {
-					return (long) (Double.parseDouble(size.replaceFirst(
-							"\\s*[kKmMgG]?[bB]", "")) * UNIT_GIGABYTE);
-				}
-//			}
+	/**
+	 * Parse the input string and return the size in byte. The input string must
+	 * have two parts, optionally separated by whitespaces:<br />
+	 * <ul>
+	 * <li><b>decimal number</b>, to indicate the size (both dot and comma can
+	 * be used as decimal separator)</li>
+	 * <li><b>unit</b>, as <i>B</i>, <i>KB</i>, <i>MB</i>, <i>GB</i> (they can be
+	 * also lowercase)</li>
+	 * </ul>
+	 * 
+	 * @param formattedSize
+	 *            string to parse
+	 * @return the corresponding size in byte
+	 * 
+	 * @throws NullPointerException
+	 *             if the parameter is null
+	 * @throws IllegalArgumentException
+	 *             if size isn't well formatted
+	 */
+	public static long parseSize(String formattedSize) throws NullPointerException, IllegalArgumentException {
+		formattedSize = formattedSize.trim().replace(",", ".");
+		
+		Matcher matcher = PATTERN_FORMATTED_SIZE.matcher(formattedSize);
+		if (matcher.find()) {
+			
+			String unit = matcher.group(GROUP_UNIT).toLowerCase();
+			double size = Double.parseDouble(matcher.group(GROUP_SIZE));
+			
+			if (unit.equals("b")) {
+				return (long) size;
+				
+			} else if (unit.equals("kb")) {
+				return (long) (size * UNIT_KILOBYTE);
+				
+			} else if (unit.equals("mb")) {
+				return (long) (size * UNIT_MEGABYTE);
+				
+			} else if (unit.equals("gb")) {
+				return (long) (size * UNIT_GIGABYTE);
+			}
 		}
-		return 0;
+		
+		throw new IllegalArgumentException("Invalid input format: " + formattedSize);
 	}
 }
