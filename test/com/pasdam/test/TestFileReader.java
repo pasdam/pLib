@@ -25,7 +25,7 @@ public class TestFileReader {
 	/**
 	 * Default values separator in the data file
 	 */
-	public static final String DEFAULT_SEPARATOR = "||||||||";
+	public static final String DEFAULT_SEPARATOR = "\t\t";
 	
 	/**
 	 * Default split pattern
