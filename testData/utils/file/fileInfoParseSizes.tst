@@ -1,0 +1,24 @@
+# Test format (column are separated by two tabs):
+#	<size>		<formattedSize>
+
+# basic tests
+150		150 B
+150		150B
+150		0.15 KB
+150		0.15KB
+10000		0.01 MB
+10000		0.01MB
+0		0 GB
+0		0GB
+
+1500000		1.5 MB
+
+321000		321000 B
+321000		321 KB
+320000		0.32 MB
+30000000		0.03 GB
+
+9150000000		9150000000 B
+9150000000		9150000 KB
+9150000000		9150 MB
+9150000000		9.15 GB
