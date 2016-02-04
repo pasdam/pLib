@@ -15,11 +15,6 @@ import java.util.regex.Pattern;
  */
 public class PatternExtractor {
 	
-	/** 
-	 * Pattern that matches http/https urls 
-	 */
-	public static final Pattern PATTERN_HTTP_URL = Pattern.compile("https?://[a-zA-Z0-9\\.\\-]+\\.[a-zA-Z]+/\\w+[^\\s\"<>()']+");
-	
 	private PatternHandler patternHandler;
 	private Pattern pattern;
 	
@@ -133,7 +128,7 @@ public class PatternExtractor {
 		Matcher matcher = pattern.matcher(text);
 		while (matcher.find()) {
 			// notify the handler
-			patternHandler.patternDetected(matcher.group(), matcher.start(), matcher.end());
+			patternHandler.patternDetected(matcher);
 		}
 		return patternHandler.detectedPatterns();
 	}
@@ -154,7 +149,7 @@ public class PatternExtractor {
 		 * @param startIndex index of the first character matched
 		 * @param endIndex the offset after the last character matched.
 		 */
-		public void patternDetected(String pattern, int startIndex, int endIndex);
+		public void patternDetected(Matcher matcher);
 		
 		/**
 		 * Returns the list of all detected patterns
@@ -175,8 +170,8 @@ public class PatternExtractor {
 		private List<String> patterns = new ArrayList<String>();
 		
 		@Override
-		public void patternDetected(String pattern, int startIndex, int endIndex) {
-			this.patterns.add(pattern);
+		public void patternDetected(Matcher matcher) {
+			this.patterns.add(matcher.group());
 		}
 
 		@Override
