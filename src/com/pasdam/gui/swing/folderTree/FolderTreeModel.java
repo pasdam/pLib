@@ -2,164 +2,173 @@ package com.pasdam.gui.swing.folderTree;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Enumeration;
 
-import javax.swing.Icon;
-import javax.swing.SwingUtilities;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeWillExpandListener;
-import javax.swing.filechooser.FileSystemView;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeModel;
 
 import com.pasdam.utils.file.fileFilters.DirectoryFilter;
 import com.pasdam.utils.file.fileFilters.DirectoryShowHiddenFilter;
 
 /**
- * TreeModel that load filesystem elements dynamically 
- * @author Paco
- * @version 1.0
+ * {@link TreeModel} that load filesystem elements dynamically. In order to perform<br />
+ * By default, it doesn't change hidden folders, to change this behavior, use
+ * {@link #setShowHidden(boolean)}.
+ * 
+ * @author paco
+ * @version 0.1
  */
 @SuppressWarnings("serial")
-public class FolderTreeModel extends DefaultTreeModel implements TreeWillExpandListener {
+class FolderTreeModel extends DefaultTreeModel implements Comparator<File> {
 	
-	private boolean showHidden = false;
+	/**
+	 * {@link FileFilter} used to index retrieve folder's children
+	 */
+	private FileFilter directoryFilter = new DirectoryFilter();
 	
 	/**
 	 * Constructor that associate the model to the tree and load root nodes
 	 * @param tree - tree to which associate this model
 	 */
 	public FolderTreeModel() {
-		super(new FolderNode(new File("Computer"), true, FileSystemView.getFileSystemView().getSystemIcon(File.listRoots()[0])));
+		super(new DefaultMutableTreeNode());
 		
 		setAsksAllowsChildren(true);
 		
-		// add elements to the tree
-		FolderNode rootNode = ((FolderNode) getRoot());
-		
-		FolderNode node;
+		// add filesystem roots to the tree
 		File[] roots = File.listRoots();
+		DefaultMutableTreeNode rootNode;
 		if (roots.length > 1) {
-			final Icon systemIcon = FileSystemView.getFileSystemView().getSystemIcon(roots[0]);
-			for (int k=0; k<roots.length; k++) {
-				node = new FolderNode(roots[k], true, systemIcon);
-				rootNode.add(node);
-//				node.add( new DefaultMutableTreeNode(new Boolean(true)));
+			rootNode = (DefaultMutableTreeNode) getRoot();
+
+			DefaultMutableTreeNode currentNode;
+			for (int k = 0; k < roots.length; k++) {
+				currentNode = new DefaultMutableTreeNode(roots[k]);
+				rootNode.add(currentNode);
+				indexSubFolder(currentNode, 1, true);
 			}
+			
 		} else {
-			final FolderNode rootFolder = new FolderNode(roots[0], true, FileSystemView.getFileSystemView().getSystemIcon(roots[0]));
-			setRoot(rootFolder);
-			SwingUtilities.invokeLater(new LoadChildrenWorker(rootFolder));
+			// if there is only one filesystem root, make it as the root of the
+			// tree
+			rootNode = new DefaultMutableTreeNode(roots[0]);
+			setRoot(rootNode);
+			indexSubFolder(rootNode, 2, true);
 		}
 	}
-
-	public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
-		// get expanded node
-		FolderNode node = (FolderNode) event.getPath().getLastPathComponent();
-		if (!node.isLeaf()) {
-			// load children
-			Thread thread = new LoadChildrenWorker(node);
-			thread.start();
-			try {
-				thread.join();
-			} catch (InterruptedException e) {}
-		}
-	}
-	
-	public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
-		// get collapsed node
-		FolderNode node = (FolderNode) event.getPath().getLastPathComponent();
-		// unload children
-		SwingUtilities.invokeLater(new LoadChildrenWorker(node));
-	}
-
 
 	/**
-	 * @param showHidden the showHidden to set
+	 * Sets whether the hidden folder should be visible or not
+	 * @param showHidden if true the hidden folder are visible in the tree
 	 */
 	public void setShowHidden(boolean showHidden) {
-		this.showHidden = showHidden;
+		this.directoryFilter = showHidden
+				? new DirectoryShowHiddenFilter()
+				: new DirectoryFilter();
 	}
 	
+	/**
+	 * Ensures that the node identified by the input file is loaded
+	 * 
+	 * @param path
+	 *            folder to check, and eventually load
+	 * @return the {@link DefaultMutableTreeNode} corresponding to the input
+	 *         file
+	 */
+	@SuppressWarnings("unchecked")
+	public DefaultMutableTreeNode loadPath(File path) {
+		// normalize input
+		if (path.isFile()) {
+			path = path.getParentFile();
+		}
+		String targetPath = path.getAbsoluteFile().getAbsolutePath();
+		
+		DefaultMutableTreeNode currentNode;
+		String currentFilePath;
+		Enumeration<DefaultMutableTreeNode> childrenNodes = ((DefaultMutableTreeNode) getRoot()).children();
+		
+		while (childrenNodes.hasMoreElements()) {
+			// get current node info
+			currentNode = childrenNodes.nextElement();
+			currentFilePath = ((File) currentNode.getUserObject()).getAbsolutePath();
+			
+			if (targetPath.startsWith(currentFilePath)) {
+				// make sure that the children are loaded
+				indexSubFolder(currentNode, 1, false);
 
-	/**
-	 * Thread that loads children of a node
-	 */
-	class LoadChildrenWorker extends Thread {
-		
-		private FolderNode parentNode;
-		
-		/**
-		 * @param parentNode - node for which load children
-		 */
-		public LoadChildrenWorker(FolderNode parentNode) {
-			this.parentNode = parentNode;
-		}
-		
-		@Override
-		public void run() {
-			File[] listFiles;
-			FileFilter dirFilter;
-			if (showHidden) {
-				dirFilter = new DirectoryShowHiddenFilter();
-			} else {
-				dirFilter = new DirectoryFilter();
-			}
-			// obtain file associated with node and load children directory otherwise
-			listFiles = ((File) parentNode.getUserObject()).listFiles(dirFilter);
-			if (listFiles != null) {
-				// unload previous loaded children
-				int childCount = parentNode.getChildCount();
-				for (int i = 0; i < childCount; i++) {
-					removeNodeFromParent((MutableTreeNode) parentNode.getChildAt(0));
+				if (targetPath.equals(currentFilePath)) {
+					// the current node is the requested one
+					return currentNode;
+					
+				} else {
+					// scan subfolders
+					childrenNodes = currentNode.children();
 				}
-				for (int i = 0; i < listFiles.length; i++) {
-					// if current directory has no subdirectory, mark the node as a leaf
-					try {
-						if (listFiles[i]
-								.listFiles(dirFilter)
-								.length == 0) {
-							// add a leaf
-							insertNodeInto(new FolderNode(listFiles[i], false, FileSystemView.getFileSystemView().getSystemIcon(listFiles[i])), parentNode, i);
-						} else {
-							// add a node
-							insertNodeInto(new FolderNode(listFiles[i], true, FileSystemView.getFileSystemView().getSystemIcon(listFiles[i])), parentNode, i);
-						}
-					} catch (Exception e) {
-						insertNodeInto(new FolderNode(listFiles[i], false, FileSystemView.getFileSystemView().getSystemIcon(listFiles[i])), parentNode, i);
-					}
-				}
-			} else {
-				// node has no children
-				int childCount = parentNode.getChildCount();
-				for (int i = 0; i < childCount; i++) {
-					removeNodeFromParent((MutableTreeNode) parentNode.getChildAt(0));
-				}
-				parentNode.setAllowsChildren(false);
 			}
 		}
+		
+		return null;
 	}
 	
 	/**
-	 * Thread that unloads children of a node
+	 * Recursive method used to load children nodes
+	 * 
+	 * @param parentNode
+	 *            node for which load children
+	 * @param depth
+	 *            indicates the depth of the descendants to load
+	 * @param refresh
+	 *            if node children are already loaded it indicates whether
+	 *            the list should be refreshed or not
 	 */
-	class UnloadChildrenWorker extends Thread {
-		
-		private FolderNode node;
-		
-		/**
-		 * @param parentNode - node for which unload children
-		 */
-		public UnloadChildrenWorker(FolderNode node) {
-			this.node = node;
-		}
-		
-		@Override
-		public void run() {
-			int childCount = node.getChildCount();
-			for (int i = 0; i < childCount; i++) {
-				removeNodeFromParent((MutableTreeNode) node.getChildAt(0));
+	public void indexSubFolder(DefaultMutableTreeNode parentNode, int depth, boolean refresh) {
+		int childCount = parentNode.getChildCount();
+		if (childCount != 0) {
+			if (refresh) {
+				// unload previous loaded children
+				for (int i = 0; i < childCount; i++) {
+					removeNodeFromParent((MutableTreeNode) parentNode.getChildAt(0));
+				} 
+				
+			} else {
+				return;
 			}
 		}
+
+		File[] listFiles = ((File) parentNode.getUserObject()).listFiles(this.directoryFilter);
+		if (listFiles != null && listFiles.length > 0) {
+			// sort children alphabetically (case insensitive)
+			Arrays.sort(listFiles, this);
+
+			// add children
+			DefaultMutableTreeNode currentChildNode;
+			for (int i = 0; i < listFiles.length; i++) {
+				currentChildNode = new DefaultMutableTreeNode(listFiles[i]);
+				insertNodeInto(currentChildNode, parentNode, i);
+				
+				if (depth > 0) {
+					// index also subfolders
+					indexSubFolder(currentChildNode, depth - 1, refresh);
+				}
+			} 
+			
+		} else {
+			// node has no children
+			childCount = parentNode.getChildCount();
+			for (int i = 0; i < childCount; i++) {
+				removeNodeFromParent((MutableTreeNode) parentNode.getChildAt(0));
+			}
+			parentNode.setAllowsChildren(false);
+		}
+	}
+
+	@Override
+	public int compare(File o1, File o2) {
+		// case insensitive filenames comparison
+		return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
 	}
 }
