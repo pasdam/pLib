@@ -117,9 +117,10 @@ class FolderTreeModel extends DefaultTreeModel implements Comparator<File> {
 		}
 		String targetPath = path.getAbsoluteFile().getAbsolutePath();
 		
+		DefaultMutableTreeNode currentParent = (DefaultMutableTreeNode) getRoot();
 		DefaultMutableTreeNode currentNode = null;
 		String currentFilePath;
-		Enumeration<DefaultMutableTreeNode> childrenNodes = ((DefaultMutableTreeNode) getRoot()).children();
+		Enumeration<DefaultMutableTreeNode> childrenNodes = currentParent.children();
 		
 		while (childrenNodes.hasMoreElements()) {
 			// get current node info
@@ -132,16 +133,17 @@ class FolderTreeModel extends DefaultTreeModel implements Comparator<File> {
 
 				if (targetPath.equals(currentFilePath)) {
 					// the current node is the requested one
-					break;
+					return currentNode;
 					
 				} else {
 					// scan subfolders
-					childrenNodes = currentNode.children();
+					currentParent = currentNode;
+					childrenNodes = currentParent.children();
 				}
 			}
 		}
 		
-		return currentNode;
+		return currentParent;
 	}
 	
 	/**
