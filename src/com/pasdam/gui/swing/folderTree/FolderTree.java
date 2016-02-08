@@ -49,6 +49,18 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 	}
 
 	/**
+	 * Sets whether the hidden folder should be visible or not
+	 * 
+	 * @param showHidden
+	 *            if true the hidden folder are visible in the tree
+	 */
+	public void setShowHidden(boolean showHidden) {
+		if (showHidden != this.model.showHidden()) {
+			SwingUtilities.invokeLater(new ReloadModelWorker(showHidden));
+		}
+	}
+
+	/**
 	 * This method select the input folder
 	 * 
 	 * @param folder
@@ -61,8 +73,6 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 	@Override
 	public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
 		if (!this.ignoreChanges) {
-			System.out.println("FolderTree.treeWillExpand - Node: "
-					+ (DefaultMutableTreeNode) event.getPath().getLastPathComponent());
 			// load direct descendant of the expanded node
 			SwingUtilities.invokeLater(
 					new LoadChildrenWorker((DefaultMutableTreeNode) event.getPath().getLastPathComponent()));
@@ -76,16 +86,16 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 	private class FolderTreeCellRenderer extends DefaultTreeCellRenderer {
 		
 		private static final long serialVersionUID = 3749795009098192364L;
-
+		
 		@Override
 		public Component getTreeCellRendererComponent(JTree tree, Object value,
 				boolean sel, boolean expanded, boolean leaf, int row,
 				boolean hasFocus) {
-			JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf,
-					row, hasFocus);
-			
 			File folder = (File)((DefaultMutableTreeNode) value).getUserObject();
 			
+			JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf,
+					row, hasFocus);
+
 			// set the filename as label
 			label.setText(folder.getName());
 			// set the system icon
@@ -95,8 +105,8 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 		}
 	}
 	
-	/** Thread used to search and select a node */
-	private class SelectNodeWorker extends Thread {
+	/** Worker used to search and select a node */
+	private class SelectNodeWorker implements Runnable {
 		
 		private File folder;
 		
@@ -106,8 +116,7 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 		
 		@Override
 		public void run() {
-			DefaultMutableTreeNode node = FolderTree.this.model.loadPath(this.folder);
-			TreePath path = new TreePath(node.getPath());
+			TreePath path = new TreePath(FolderTree.this.model.loadPath(this.folder).getPath());
 			
 			// avoid to start loading of children node when expanding (since is
 			// done in the line above)
@@ -118,12 +127,13 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 			setSelectionPath(path);
 			scrollPathToVisible(path);
 			
+			// reset "ignoreChanges"
 			FolderTree.this.ignoreChanges = false;
 		}
 	}
 	
-	/** {@link Thread} worker that loads children of a node */
-	private class LoadChildrenWorker extends Thread {
+	/** Worker that loads children of a node */
+	private class LoadChildrenWorker implements Runnable {
 		
 		/** Parent node of the one for which load the children */
 		private DefaultMutableTreeNode parentNode;
@@ -141,6 +151,37 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 		@Override
 		public void run() {
 			FolderTree.this.model.indexSubFolder(this.parentNode, 1, true);
+		}
+	}
+	
+	/** Worker used to refresh view */
+	private class ReloadModelWorker implements Runnable {
+		
+		/** Indicates whether hidden folders should be listed or not */
+		private final boolean showHidden;
+		
+		/**
+		 * Create a worker to update the model
+		 * 
+		 * @param showHidden
+		 *            if true indicates that the model should contain the hidden
+		 *            folders
+		 */
+		public ReloadModelWorker(boolean showHidden) {
+			this.showHidden = showHidden;
+		}
+
+		@Override
+		public void run() {
+			// save currently selected path
+			File selectedFolder = (File) ((DefaultMutableTreeNode) getSelectionPath().getLastPathComponent()).getUserObject();
+
+			// change model property
+			FolderTree.this.model.setShowHidden(this.showHidden);
+			
+			System.out.println(selectedFolder);
+			
+			new SelectNodeWorker(selectedFolder).run();
 		}
 	}
 }

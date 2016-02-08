@@ -25,20 +25,39 @@ import com.pasdam.utils.file.fileFilters.DirectoryShowHiddenFilter;
 @SuppressWarnings("serial")
 class FolderTreeModel extends DefaultTreeModel implements Comparator<File> {
 	
-	/**
-	 * {@link FileFilter} used to index retrieve folder's children
-	 */
+	/** {@link FileFilter} used to retrieve folders */
 	private FileFilter directoryFilter = new DirectoryFilter();
+	
+	/** Indicates if the filter accept hiddend folders */
+	private boolean showHidden = false;
 	
 	/**
 	 * Constructor that associate the model to the tree and load root nodes
-	 * @param tree - tree to which associate this model
+	 * 
+	 * @param tree
+	 *            - tree to which associate this model
 	 */
 	public FolderTreeModel() {
 		super(new DefaultMutableTreeNode());
 		
 		setAsksAllowsChildren(true);
 		
+		initialize();
+	}
+	
+	/**
+	 * Returns true if the model contains hidden folders
+	 * 
+	 * @return true if the model contains hidden folders
+	 */
+	public boolean showHidden() {
+		return showHidden;
+	}
+
+	/**
+	 * Initialize the model and loads filesystem roots
+	 */
+	private void initialize() {
 		// add filesystem roots to the tree
 		File[] roots = File.listRoots();
 		DefaultMutableTreeNode rootNode;
@@ -62,13 +81,23 @@ class FolderTreeModel extends DefaultTreeModel implements Comparator<File> {
 	}
 
 	/**
-	 * Sets whether the hidden folder should be visible or not
-	 * @param showHidden if true the hidden folder are visible in the tree
+	 * Sets whether the hidden folder should be visible or not, please note that
+	 * this correspond to a model reset, so all nodes will be unloaded
+	 * 
+	 * @param showHidden
+	 *            if true the hidden folder are visible in the tree
 	 */
 	public void setShowHidden(boolean showHidden) {
-		this.directoryFilter = showHidden
-				? new DirectoryShowHiddenFilter()
-				: new DirectoryFilter();
+		if (showHidden != this.showHidden) {
+			// save value
+			this.showHidden = showHidden;
+			// update filter
+			this.directoryFilter = showHidden 
+					? new DirectoryShowHiddenFilter() 
+					: new DirectoryFilter();
+			// reset model
+			initialize();
+		}
 	}
 	
 	/**
@@ -77,7 +106,8 @@ class FolderTreeModel extends DefaultTreeModel implements Comparator<File> {
 	 * @param path
 	 *            folder to check, and eventually load
 	 * @return the {@link DefaultMutableTreeNode} corresponding to the input
-	 *         file
+	 *         file, the last non-hidden ancestor if the <i>showHidden</i>
+	 *         property is false and the specified folder is hidden
 	 */
 	@SuppressWarnings("unchecked")
 	public DefaultMutableTreeNode loadPath(File path) {
@@ -87,7 +117,7 @@ class FolderTreeModel extends DefaultTreeModel implements Comparator<File> {
 		}
 		String targetPath = path.getAbsoluteFile().getAbsolutePath();
 		
-		DefaultMutableTreeNode currentNode;
+		DefaultMutableTreeNode currentNode = null;
 		String currentFilePath;
 		Enumeration<DefaultMutableTreeNode> childrenNodes = ((DefaultMutableTreeNode) getRoot()).children();
 		
@@ -102,7 +132,7 @@ class FolderTreeModel extends DefaultTreeModel implements Comparator<File> {
 
 				if (targetPath.equals(currentFilePath)) {
 					// the current node is the requested one
-					return currentNode;
+					break;
 					
 				} else {
 					// scan subfolders
@@ -111,7 +141,7 @@ class FolderTreeModel extends DefaultTreeModel implements Comparator<File> {
 			}
 		}
 		
-		return null;
+		return currentNode;
 	}
 	
 	/**
