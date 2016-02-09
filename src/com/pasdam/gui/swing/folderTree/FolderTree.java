@@ -66,7 +66,7 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 	 * @param folder
 	 *            the folder to select
 	 */
-	public void setCurrentFolder(File folder){
+	public void setCurrentFolder(File folder) {
 		SwingUtilities.invokeLater(new SelectNodeWorker(folder));
     }
 
@@ -173,15 +173,16 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 
 		@Override
 		public void run() {
-			// save currently selected path
-			File selectedFolder = (File) ((DefaultMutableTreeNode) getSelectionPath().getLastPathComponent()).getUserObject();
-
-			// change model property
-			FolderTree.this.model.setShowHidden(this.showHidden);
-			
-			System.out.println(selectedFolder);
-			
-			new SelectNodeWorker(selectedFolder).run();
+			TreePath selectionPath = getSelectionPath();
+			if (selectionPath != null) {
+				// save currently selected path
+				File selectedFolder = (File) ((DefaultMutableTreeNode) selectionPath.getLastPathComponent())
+						.getUserObject();
+				// change model property
+				FolderTree.this.model.setShowHidden(this.showHidden);
+				// restore selection
+				new SelectNodeWorker(selectedFolder).run();
+			}
 		}
 	}
 }
