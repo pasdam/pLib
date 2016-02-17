@@ -108,7 +108,7 @@ public class FileInfo {
 			this.name 		= matcher.group(GROUP_NAME);
 			this.extension 	= matcher.group(GROUP_EXTENSION);
 		}
-			
+		
 		this.file = file;
 	}
 	

@@ -11,8 +11,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeModel;
 
-import com.pasdam.utils.file.fileFilters.DirectoryFilter;
-import com.pasdam.utils.file.fileFilters.DirectoryShowHiddenFilter;
+import com.pasdam.utils.file.fileFilters.FileFilterFactory;
 
 /**
  * {@link TreeModel} that load filesystem elements dynamically. In order to perform<br />
@@ -25,11 +24,11 @@ import com.pasdam.utils.file.fileFilters.DirectoryShowHiddenFilter;
 @SuppressWarnings("serial")
 class FolderTreeModel extends DefaultTreeModel implements Comparator<File> {
 	
-	/** {@link FileFilter} used to retrieve folders */
-	private FileFilter directoryFilter = new DirectoryFilter();
-	
 	/** Indicates if the filter accept hiddend folders */
 	private boolean showHidden = false;
+	
+	/** {@link FileFilter} used to retrieve folders */
+	private FileFilter directoryFilter = FileFilterFactory.getFilter(true, false, showHidden);
 	
 	/**
 	 * Constructor that associate the model to the tree and load root nodes
@@ -92,9 +91,7 @@ class FolderTreeModel extends DefaultTreeModel implements Comparator<File> {
 			// save value
 			this.showHidden = showHidden;
 			// update filter
-			this.directoryFilter = showHidden 
-					? new DirectoryShowHiddenFilter() 
-					: new DirectoryFilter();
+			this.directoryFilter = FileFilterFactory.getFilter(true, false, showHidden);
 			// reset model
 			initialize();
 		}
