@@ -99,9 +99,7 @@ public class FileInfo {
 	 * @throws NullPointerException
 	 *             if the parameter is null
 	 */
-	private FileInfo(File file) throws IllegalArgumentException {
-		assert file != null : "Input file cannot be null";
-		
+	private FileInfo(File file) {
 		// parse file parts
 		Matcher matcher = PATTERN_NAME_PARTS.matcher(file.getName());
 		if (matcher.find()) {
@@ -196,7 +194,7 @@ public class FileInfo {
 	 * @throws NullPointerException
 	 *             if the parameter is null
 	 */
-	public static FileInfo parseFileInfo(File file) throws IllegalArgumentException {
+	public static FileInfo parseFileInfo(File file) {
 		return new FileInfo(file);
 	}
 	
