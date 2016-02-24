@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DropTarget;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,14 +15,13 @@ import javax.swing.JPanel;
 /**
  * <p>Example of dragging and dropping panels in Java 5.</p>
  * <p>Everything kept in simple class for pursposes of simplicity.</p>
- * @author Bryan E. Smith - bryanesmith@gmail.com
+ * @author Bryan E. Smith - bryanesmith[at]gmail.com
  */
-@SuppressWarnings("serial")
 public class DragAndDropPanels extends JPanel {
-    
-    /**
-     * Keep a list of the user-added panels so can re-add
-     */
+
+	private static final long serialVersionUID = 9172065194140060413L;
+
+	/** Keep a list of the user-added panels so can re-add */
     private final List<Component> panels;
     
     /**
@@ -97,6 +97,11 @@ public class DragAndDropPanels extends JPanel {
         this.validate();
         this.repaint();
     }
+    
+    @Override
+    public synchronized MouseListener[] getMouseListeners() {
+    	return super.getMouseListeners();
+    }
 
     /**
      * <p>Returns (creating, if necessary) the DataFlavor representing RandomDragAndDropPanel</p>
@@ -111,10 +116,10 @@ public class DragAndDropPanels extends JPanel {
     }
 
     /**
-//     * <p>Returns the List of user-added panels.</p>
-//     * <p>Note that for drag and drop, these will be cleared, and the panels will be added back in the correct order!</p>
-//     * @return
-//     */
+     * <p>Returns the List of user-added panels.</p>
+     * <p>Note that for drag and drop, these will be cleared, and the panels will be added back in the correct order!</p>
+     * @return
+     */
     protected List<Component> getChildrenComponent() {
         return panels;
     }

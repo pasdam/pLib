@@ -3,6 +3,7 @@ package com.pasdam.gui.swing.dragAndDropPanels;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DragSourceDragEvent;
 import java.awt.dnd.DragSourceMotionListener;
+import java.awt.event.InputEvent;
 
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
@@ -24,7 +25,7 @@ public class DragAndDropTransferHandler extends TransferHandler implements DragS
      * @param c
      * @return
      */
-    @Override()
+    @Override
     public Transferable createTransferable(JComponent c) {
         // TaskInstancePanel implements Transferable
         if (c instanceof Transferable) {
@@ -35,14 +36,20 @@ public class DragAndDropTransferHandler extends TransferHandler implements DragS
         return null;
     }
 
+    @Override
     public void dragMouseMoved(DragSourceDragEvent dsde) {}
+    
+    @Override
+    public void exportAsDrag(JComponent arg0, InputEvent arg1, int arg2) {
+    	super.exportAsDrag(arg0, arg1, arg2);
+    }
 
     /**
      * <p>This is queried to see whether the component can be copied, moved, both or neither. We are only concerned with copying.</p>
      * @param c
      * @return
      */
-    @Override()
+    @Override
     public int getSourceActions(JComponent c) {
         if (c instanceof Transferable) {
             return TransferHandler.COPY;
