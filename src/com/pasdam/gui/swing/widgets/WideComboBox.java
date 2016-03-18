@@ -35,7 +35,7 @@ public class WideComboBox extends JComboBox<String> {
 	/** Creates an empty combobox */
 	public WideComboBox() {}
 	
-
+	@Override
 	public void doLayout() {
 		try {
 			this.layingOut = true;
@@ -46,6 +46,7 @@ public class WideComboBox extends JComboBox<String> {
 		}
 	}
 
+	@Override
 	public Dimension getSize() {
 		Dimension dim = super.getSize();
 		if (!layingOut) {
