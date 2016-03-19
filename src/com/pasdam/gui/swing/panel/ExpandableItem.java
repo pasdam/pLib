@@ -51,7 +51,7 @@ public class ExpandableItem extends JPanel implements Transferable {
 		
 		InternalEventHandler handler = new InternalEventHandler();
 		this.titleContainer.addMouseListener(handler);
-		this.titleContainer.addMouseMotionListener(handler);
+		//this.titleContainer.addMouseMotionListener(handler);
 
 		// TODO: enable drag&drop behavior
 		//setTransferHandler(new DragAndDropTransferHandler());
@@ -165,24 +165,13 @@ public class ExpandableItem extends JPanel implements Transferable {
 		return false;
 	}
 	
-	/**
-	 * @author paco
-	 * @version 0.1
-	 */
+	/** Class that handle internal events */
 	private class InternalEventHandler implements MouseListener,
 												  MouseMotionListener {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			if (e.isPopupTrigger()) {
-				// show context menu
-				if (ExpandableItem.this.contextMenu != null) {
-					ExpandableItem.this.contextMenu.show(titleContainer, e.getX(), e.getY());
-				}
-			} else {
-				// toggle content panel visibility
-				toggleCollapsedState();
-			}
+			toggleCollapsedState();
 		}
 		
 		/** Event ignored */
@@ -193,13 +182,20 @@ public class ExpandableItem extends JPanel implements Transferable {
 		@Override
 		public void mouseExited(MouseEvent e) {}
 		
-		/** Event ignored */
 		@Override
-		public void mousePressed(MouseEvent e) {}
+		public void mousePressed(MouseEvent e) {
+			mouseReleased(e);
+		}
 		
-		/** Event ignored */
 		@Override
-		public void mouseReleased(MouseEvent e) {}
+		public void mouseReleased(MouseEvent e) {
+			if (e.isPopupTrigger()) {
+				// show context menu
+				if (ExpandableItem.this.contextMenu != null) {
+					ExpandableItem.this.contextMenu.show(ExpandableItem.this.titleContainer, e.getX(), e.getY());
+				}
+			}
+		}
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
