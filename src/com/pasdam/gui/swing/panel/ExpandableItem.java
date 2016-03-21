@@ -1,30 +1,23 @@
 package com.pasdam.gui.swing.panel;
 
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.border.BevelBorder;
 
-import com.pasdam.gui.swing.dragAndDropPanels.DragAndDropPanels;
-
 /**
- * 
+ * Expandable {@link JPanel}, with a title and a content; this latter is visible
+ * only when component is expanded.
  * 
  * @author paco
  * @version 1.0
  */
-public class ExpandableItem extends JPanel implements Transferable {
+public class ExpandableItem extends JPanel {
 	
 	private static final long serialVersionUID = -8618270652322173457L;
 
@@ -46,16 +39,8 @@ public class ExpandableItem extends JPanel implements Transferable {
 		// create and add title container
 		this.titleContainer = Box.createHorizontalBox();
 		this.titleContainer.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		this.titleContainer.setMaximumSize(new Dimension(32767, 30));
+		this.titleContainer.addMouseListener(new InternalEventHandler());
 		add(this.titleContainer);
-		
-		InternalEventHandler handler = new InternalEventHandler();
-		this.titleContainer.addMouseListener(handler);
-		//this.titleContainer.addMouseMotionListener(handler);
-
-		// TODO: enable drag&drop behavior
-		//setTransferHandler(new DragAndDropTransferHandler());
-		//addMouseListener(new DragAndDropMouseListener());
 	}
 
 	/**
@@ -64,8 +49,11 @@ public class ExpandableItem extends JPanel implements Transferable {
 	 * @param component
 	 *            title component
 	 */
-	public void setTitleComponent(Component component) {
+	public void setTitleComponent(JComponent component) {
 		this.titleContainer.removeAll();
+		this.titleContainer.setPreferredSize(component.getPreferredSize());
+		this.titleContainer.setMaximumSize(component.getMaximumSize());
+		this.titleContainer.setMinimumSize(component.getMinimumSize());
 		this.titleContainer.add(component);
 	}
 	
@@ -122,97 +110,35 @@ public class ExpandableItem extends JPanel implements Transferable {
 		}
 	}
 	
-	@Override
-	public Object getTransferData(DataFlavor flavor)
-			throws UnsupportedFlavorException, IOException {
-		DataFlavor thisFlavor = null;
-		try {
-			thisFlavor = DragAndDropPanels.getDragAndDropPanelDataFlavor();
-		} catch (Exception ex) {
-			return null;
-		}
-		// For now, assume wants this class... see loadDnD
-		if (thisFlavor != null && flavor.equals(thisFlavor)) {
-			return ExpandableItem.this;
-		}
-		return null;
-	}
-
-	@Override
-	public DataFlavor[] getTransferDataFlavors() {
-		DataFlavor[] flavors = {null};
-		try {
-			flavors[0] = DragAndDropPanels.getDragAndDropPanelDataFlavor();
-		} catch (Exception ex) {
-			return null;
-		}
-		return flavors;
-	}
-
-	@Override
-	public boolean isDataFlavorSupported(DataFlavor flavor) {
-		DataFlavor[] flavors = {null};
-        try {
-            flavors[0] = DragAndDropPanels.getDragAndDropPanelDataFlavor();
-        } catch (Exception ex) {
-            return false;
-        }
-        for (DataFlavor f : flavors) {
-            if (f.equals(flavor)) {
-                return true;
-            }
-        }
-		return false;
-	}
-	
 	/** Class that handle internal events */
-	private class InternalEventHandler implements MouseListener,
-												  MouseMotionListener {
+	private class InternalEventHandler implements MouseListener {
 
 		@Override
-		public void mouseClicked(MouseEvent e) {
+		public void mouseClicked(MouseEvent event) {
 			toggleCollapsedState();
 		}
 		
 		/** Event ignored */
 		@Override
-		public void mouseEntered(MouseEvent e) {}
+		public void mouseEntered(MouseEvent event) {}
 		
 		/** Event ignored */
 		@Override
-		public void mouseExited(MouseEvent e) {}
+		public void mouseExited(MouseEvent event) {}
 		
 		@Override
-		public void mousePressed(MouseEvent e) {
-			mouseReleased(e);
+		public void mousePressed(MouseEvent event) {
+			mouseReleased(event);
 		}
 		
 		@Override
-		public void mouseReleased(MouseEvent e) {
-			if (e.isPopupTrigger()) {
+		public void mouseReleased(MouseEvent event) {
+			if (event.isPopupTrigger()) {
 				// show context menu
 				if (ExpandableItem.this.contextMenu != null) {
-					ExpandableItem.this.contextMenu.show(ExpandableItem.this.titleContainer, e.getX(), e.getY());
+					ExpandableItem.this.contextMenu.show(ExpandableItem.this.titleContainer, event.getX(), event.getY());
 				}
 			}
 		}
-
-		@Override
-		public void mouseDragged(MouseEvent e) {
-			// get the original source of the event
-			Box box = (Box) e.getSource();
-
-			// replace event's source with this ExpandableItem
-			e.setSource(ExpandableItem.this);
-
-			// invoke mouse pressed on the first mouse listener of original
-			// source's parent, which is the DragAndDropMouseListener set in the
-			// constructor
-			box.getParent().getMouseListeners()[0].mousePressed(e);
-		}
-		
-		/** Event ignored */
-		@Override
-		public void mouseMoved(MouseEvent e) {}
 	}
 }

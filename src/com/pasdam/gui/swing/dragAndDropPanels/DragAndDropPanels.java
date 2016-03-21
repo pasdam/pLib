@@ -36,7 +36,7 @@ public class DragAndDropPanels extends JPanel {
         // Again, needs to negotiate with the draggable object
         setTransferHandler(new DragAndDropTransferHandler());
         // Create the listener to do the work when dropping on this object!
-        setDropTarget(new DropTarget(this, new DropAndDropTargetListener(this)));
+        setDropTarget(new DropTarget(this, new DragAndDropTargetListener(this)));
 
         // Create a list to hold all the panels
         panels = new ArrayList<Component>();

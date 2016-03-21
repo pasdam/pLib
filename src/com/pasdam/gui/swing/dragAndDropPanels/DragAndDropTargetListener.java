@@ -18,7 +18,7 @@ import java.util.Map;
  * <p>Listens for drops and performs the updates.</p>
  * <p>The real magic behind the drop!</p>
  */
-public class DropAndDropTargetListener implements DropTargetListener {
+public class DragAndDropTargetListener implements DropTargetListener {
 
     private final DragAndDropPanels rootPanel;
     
@@ -33,18 +33,25 @@ public class DropAndDropTargetListener implements DropTargetListener {
     private static final Cursor droppableCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR),
             notDroppableCursor = Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR);
 
-    public DropAndDropTargetListener(DragAndDropPanels sheet) {
+    /** Create a {@link DragAndDropTargetListener} */
+    public DragAndDropTargetListener(DragAndDropPanels sheet) {
         this.rootPanel = sheet;
     }
 
-    // Could easily find uses for these, like cursor changes, etc.
+    @Override
     public void dragEnter(DropTargetDragEvent dtde) {}
+    
+    @Override
     public void dragOver(DropTargetDragEvent dtde) {
         if (!this.rootPanel.getCursor().equals(droppableCursor)) {
             this.rootPanel.setCursor(droppableCursor);
         }
     }
+    
+    @Override
     public void dropActionChanged(DropTargetDragEvent dtde) {}
+    
+    @Override
     public void dragExit(DropTargetEvent dte) {
         this.rootPanel.setCursor(notDroppableCursor);
     }

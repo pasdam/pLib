@@ -3,31 +3,29 @@ package com.pasdam.gui.swing.dragAndDropPanels;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DragSourceDragEvent;
 import java.awt.dnd.DragSourceMotionListener;
-import java.awt.event.InputEvent;
 
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
 
 /**
- * <p>Used by both the draggable class and the target for negotiating data.</p>
- * <p>Note that this should be set for both the draggable object and the drop target.</p>
- * @author besmit
+ * <p>
+ * Used by both the draggable class and the target for negotiating data.
+ * </p>
+ * <p>
+ * Note that this should be set for both the draggable object and the drop
+ * target.
+ * </p>
+ * 
+ * @author paco
+ * @version 0.2
  */
-@SuppressWarnings("serial")
 public class DragAndDropTransferHandler extends TransferHandler implements DragSourceMotionListener {
 
-    public DragAndDropTransferHandler() {
-        super();
-    }
+	private static final long serialVersionUID = 1625546744782678976L;
 
-    /**
-     * <p>This creates the Transferable object. In our case, RandomDragAndDropPanel implements Transferable, so this requires only a type cast.</p>
-     * @param c
-     * @return
-     */
-    @Override
+	@Override
     public Transferable createTransferable(JComponent c) {
-        // TaskInstancePanel implements Transferable
+        // the JComponent must implement Transferable interface
         if (c instanceof Transferable) {
             Transferable tip = (Transferable) c;
             return tip;
@@ -38,22 +36,22 @@ public class DragAndDropTransferHandler extends TransferHandler implements DragS
 
     @Override
     public void dragMouseMoved(DragSourceDragEvent dsde) {}
-    
-    @Override
-    public void exportAsDrag(JComponent arg0, InputEvent arg1, int arg2) {
-    	super.exportAsDrag(arg0, arg1, arg2);
-    }
 
-    /**
-     * <p>This is queried to see whether the component can be copied, moved, both or neither. We are only concerned with copying.</p>
-     * @param c
-     * @return
-     */
     @Override
     public int getSourceActions(JComponent c) {
+		// This is queried to see whether the component can be copied, moved,
+		// both or neither. We are only concerned with copying.
         if (c instanceof Transferable) {
             return TransferHandler.COPY;
         }
         return TransferHandler.NONE;
+    }
+    
+    @Override
+    public boolean canImport(TransferSupport info) {
+    	if (info.isDrop()) {
+    		info.setShowDropLocation(true);
+        }
+    	return super.canImport(info);
     }
 }
