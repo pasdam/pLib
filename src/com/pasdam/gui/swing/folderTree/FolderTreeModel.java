@@ -21,9 +21,10 @@ import com.pasdam.utils.file.fileFilters.FileFilterFactory;
  * @author paco
  * @version 0.1
  */
-@SuppressWarnings("serial")
 class FolderTreeModel extends DefaultTreeModel implements Comparator<File> {
 	
+	private static final long serialVersionUID = -8940071519594454466L;
+
 	/** Indicates if the filter accept hiddend folders */
 	private boolean showHidden = false;
 	

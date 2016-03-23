@@ -20,9 +20,10 @@ import javax.swing.tree.TreePath;
  * @author paco
  * @version 0.1
  */
-@SuppressWarnings("serial")
 public class FolderTree extends JTree implements TreeWillExpandListener {
 	
+	private static final long serialVersionUID = 2956083068858428076L;
+
 	/**
 	 * Indicates if the tree is performing multiple changes, this is useful in
 	 * order to properly handle the change notifications
@@ -97,7 +98,12 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 					row, hasFocus);
 
 			// set the filename as label
-			label.setText(folder.getName());
+			String name = folder.getName();
+			if (name != null && !name.isEmpty()) {
+				label.setText(name);
+			} else {
+				label.setText(folder.getAbsolutePath());
+			}
 			// set the system icon
 			label.setIcon(FileSystemView.getFileSystemView().getSystemIcon(folder));
 			
@@ -163,7 +169,7 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 		/**
 		 * Create a worker to update the model
 		 * 
-		 * @param showHidden
+		 * @param showHidden()
 		 *            if true indicates that the model should contain the hidden
 		 *            folders
 		 */
