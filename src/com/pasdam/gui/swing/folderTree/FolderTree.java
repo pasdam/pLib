@@ -1,6 +1,9 @@
 package com.pasdam.gui.swing.folderTree;
 
 import java.awt.Component;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 
 import javax.swing.JLabel;
@@ -32,6 +35,9 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 	
 	/** Model used to populate the {@link JTree} */
 	private final FolderTreeModel model = new FolderTreeModel();
+	
+	/** Context menu opened on right click on tree elements */
+	private FileItemPopupMenu contextMenu;
 
 	/** Creates the panel */
 	public FolderTree() {
@@ -47,6 +53,9 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 		
 		// set renderer of the cell
 		setCellRenderer(new FolderTreeCellRenderer());
+		
+		// set event listener
+		addMouseListener(new InternalEventHandler());
 	}
 
 	/**
@@ -70,6 +79,17 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 	public void setCurrentFolder(File folder) {
 		SwingUtilities.invokeLater(new SelectNodeWorker(folder));
     }
+	
+	/**
+	 * Sets the context menu, to open on right click on a folder
+	 * 
+	 * @param menu
+	 *            context menu
+	 */
+	public void setContextMenu(FileItemPopupMenu menu){
+		this.contextMenu = menu;
+		add(menu);
+	}
 
 	@Override
 	public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
@@ -188,6 +208,39 @@ public class FolderTree extends JTree implements TreeWillExpandListener {
 				FolderTree.this.model.setShowHidden(this.showHidden);
 				// restore selection
 				new SelectNodeWorker(selectedFolder).run();
+			}
+		}
+	}
+	
+	/** Class that handle internal events */
+	private class InternalEventHandler implements MouseListener {
+
+		/** Event ignored */
+		@Override
+		public void mouseClicked(MouseEvent event) {}
+		
+		/** Event ignored */
+		@Override
+		public void mouseEntered(MouseEvent event) {}
+		
+		/** Event ignored */
+		@Override
+		public void mouseExited(MouseEvent event) {}
+		
+		@Override
+		public void mousePressed(MouseEvent event) {
+			mouseReleased(event);
+		}
+		
+		@Override
+		public void mouseReleased(MouseEvent event) {
+			if (event.isPopupTrigger()) {
+				// show context menu
+				if (FolderTree.this.contextMenu != null) {
+					Point location = event.getPoint();
+					File folder = (File) ((DefaultMutableTreeNode) FolderTree.this.getPathForLocation(location.x, location.y).getLastPathComponent()).getUserObject();
+					FolderTree.this.contextMenu.show(folder, FolderTree.this, event.getX(), event.getY());
+				}
 			}
 		}
 	}
