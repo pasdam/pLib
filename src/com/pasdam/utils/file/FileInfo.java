@@ -48,7 +48,7 @@ public class FileInfo {
 	 * Pattern used to parse the filename parts
 	 * TODO: add support for absolute path
 	 */
-	private static final Pattern PATTERN_NAME_PARTS = Pattern.compile("^(.+?)(\\.(\\w*)$|$)");
+	private static final Pattern PATTERN_NAME_PARTS = Pattern.compile("^(.+?)(\\.(\\w+)$|$)");
 	
 	/**
 	 * Index of the name group
