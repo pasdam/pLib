@@ -1,0 +1,35 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+ 
+dependencies {
+    testCompile 'junit:junit:4.11'
+}
+
+// custom source sets
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+    }
+    
+    test {
+        java {
+            srcDir 'test'
+        }
+    }
+}
+
+// task to create test library
+task testJar(type: Jar) {
+    classifier = "tests"
+    from sourceSets.test.output
+    exclude "**/*Test.class"
+}
+
+artifacts {
+    testRuntime testJar
+}
